@@ -7,7 +7,7 @@
 database/therapist_bot.db
 
 # ChromaDB vector store
-rag/chroma_db/
+# rag/chroma_db/
 
 # Python
 __pycache__/
