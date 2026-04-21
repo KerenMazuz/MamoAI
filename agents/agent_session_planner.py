@@ -50,10 +50,10 @@ class SessionPlanner:
 
         interp_text = json.dumps(interpretation, ensure_ascii=False, indent=2)
 
-        prev_questions = patient_history.get("previous_questions", [])
-        prev_interventions = patient_history.get("previous_interventions", [])
-        prev_patterns = patient_history.get("patterns", [])
-        prev_anchors = patient_history.get("anchors", [])
+        prev_questions = patient_history.get("previous_questions", [])[-5:]
+        prev_interventions = patient_history.get("previous_interventions", [])[-3:]
+        prev_patterns = patient_history.get("patterns", [])[-5:]
+        prev_anchors = patient_history.get("anchors", [])[-5:]
         session_number = patient_history.get("session_count", 1) + 1
 
         prev_q_text = "\n".join(f"- {q}" for q in prev_questions) if prev_questions else "אין שאלות קודמות"
@@ -64,26 +64,8 @@ class SessionPlanner:
         prompt = f"""מפגש מספר: {session_number}
 מסלול: {track}
 
-=== שלב א׳ — כל השאלות והתשובות על הרחבת הזיכרון ===
-{phase_a_text}
-
-=== שלב ב׳ — כל השאלות והתשובות על ההעברה הנגדית ===
-{phase_b_text}
-
-=== שלב ג׳ — שאלות על השדה הבין-סובייקטיבי ===
-{phase_c_text}
-
-=== זיכרון מועשר (מסוכם) ===
-{enriched_package.get('enriched_memory', '')}
-
-=== אלמנטי תנועה ===
-{enriched_package.get('movement_notes', '')}
-
-=== פרשנות תיאורטית ===
+=== פרשנות תיאורטית (Agent 3) ===
 {interp_text}
-
-שדה בין-סובייקטיבי:
-{enriched_package.get('intersubjective', '') or '(לא סופק)'}
 
 שאלות שנשאלו בפגישות קודמות (אל תחזור עליהן):
 {prev_q_text}

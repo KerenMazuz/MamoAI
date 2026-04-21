@@ -288,7 +288,7 @@ elif st.session_state["phase"] == "processing":
     current_track = st.session_state.get("processing_track", track)
     st.markdown(f"### 🔄 מנתח לפי מסלול: **{TRACKS.get(current_track, current_track)}**...")
 
-    with st.spinner("מעבד... זה עשוי לקחת כדקה"):
+    with st.status("מעבד את הפגישה...", expanded=True) as status:
         md: MemoryDeepener = st.session_state["memory_deepener"]
 
         qa_data = {
@@ -299,17 +299,22 @@ elif st.session_state["phase"] == "processing":
 
         # Get enriched package (once — reuse for additional tracks)
         if st.session_state.get("enriched_package") is None:
+            st.write("🧠 מסכם זיכרון ותובנות...")
             enriched_package = md.get_structured_output(qa_data)
             st.session_state["enriched_package"] = enriched_package
         else:
             enriched_package = st.session_state["enriched_package"]
 
+        st.write("📚 מאחזר חומר תיאורטי רלוונטי...")
+        st.write(f"🔍 מפרש לפי מסלול: {TRACKS.get(current_track, current_track)}...")
+        st.write("📋 בונה תוכנית פגישה...")
         results = run_analysis_pipeline(
             enriched_package=enriched_package,
             track=current_track,
             patient_history=patient_history,
             qa_data=qa_data,
         )
+        status.update(label="✅ הניתוח הושלם!", state="complete", expanded=False)
 
         # Accumulate analyses per track
         all_analyses = st.session_state.get("all_analyses", {})

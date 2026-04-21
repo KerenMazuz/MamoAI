@@ -43,7 +43,7 @@ def run_analysis_pipeline(
     rag_query = f"{enriched_memory[:300]} {ct_text[:200]}"
 
     # Retrieve relevant chunks from ChromaDB
-    rag_chunks: List[str] = retrieve(query=rag_query, track=track, n_results=5)
+    rag_chunks: List[str] = retrieve(query=rag_query, track=track, n_results=3)
 
     # Agent 3: interpret
     interpreter = LensInterpreter()
