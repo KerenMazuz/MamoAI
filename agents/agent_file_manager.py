@@ -59,7 +59,10 @@ def load_patient_context(patient_id: str) -> dict:
         "patient": patient,
         "context_card": context_card,
         "sessions": sessions,
-        "anchors": anchors,
+        "anchors": [
+            {"description": a.description, "strength": a.strength}
+            for a in anchors
+        ],
         "patterns": [
             {"description": p.description, "category": p.category, "occurrences": p.occurrences}
             for p in patterns
