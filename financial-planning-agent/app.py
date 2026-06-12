@@ -10,8 +10,19 @@ import pandas as pd
 import streamlit as st
 
 from agents.financial_crew import advise_only, organize_only
-from financial.excel_builder import build_workbook
-from ui.styles import RTL_CSS
+from excel.excel_builder import build_workbook
+
+RTL_CSS = """
+<style>
+    .stApp { direction: rtl; }
+    .stMarkdown, .stText { direction: rtl; text-align: right; }
+    .stTextArea textarea { direction: rtl; text-align: right; font-size: 15px; }
+    .stTextInput input { direction: rtl; text-align: right; }
+    .stSelectbox label, .stRadio label { direction: rtl; }
+    .stAlert { direction: rtl; text-align: right; }
+    div[data-testid="stSidebar"] { direction: rtl; }
+</style>
+"""
 
 st.set_page_config(
     page_title="תכנון פיננסי",
