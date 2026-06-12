@@ -116,6 +116,25 @@ if st.session_state["fin_result"]:
     st.markdown("## דוח תובנות והמלצות")
     st.markdown(advice.get("executive_summary_markdown", ""))
 
+    strategy = advice.get("self_loan_fund_strategy", {}) or {}
+    if strategy:
+        st.markdown("### 🏦 קרן ההלוואה העתידית לעצמי")
+        sc1, sc2 = st.columns(2)
+        sc1.metric("זרימה חודשית נוכחית לקרן", strategy.get("current_monthly_flow"))
+        sc2.metric("זרימה חודשית מומלצת לקרן", strategy.get("recommended_monthly_flow"))
+        st.markdown(strategy.get("rationale", ""))
+
+    recommendations = advice.get("recommendations", {}) or {}
+    rec_tabs = st.tabs(["⚡ מיידי", "📅 טווח בינוני", "🎯 אסטרטגי"])
+    for tab, key in zip(rec_tabs, ["immediate", "medium_term", "strategic"]):
+        with tab:
+            items = recommendations.get(key, [])
+            if items:
+                for item in items:
+                    st.markdown(f"- {item}")
+            else:
+                st.markdown("_אין המלצות בקטגוריה זו._")
+
     with st.expander("📊 הנתונים המסודרים (JSON)"):
         st.json(organized)
 

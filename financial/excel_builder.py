@@ -29,7 +29,10 @@ def _write_table(ws, rows: list[dict], start_row: int = 1) -> int:
 
     for r, row in enumerate(rows, start=start_row + 1):
         for col, header in enumerate(headers, start=1):
-            cell = ws.cell(row=r, column=col, value=row.get(header))
+            value = row.get(header)
+            if isinstance(value, (list, dict)):
+                value = ", ".join(str(v) for v in value) if isinstance(value, list) else str(value)
+            cell = ws.cell(row=r, column=col, value=value)
             cell.alignment = RTL_ALIGN
 
     for col in range(1, len(headers) + 1):
@@ -96,7 +99,13 @@ def build_workbook(organized: dict, advice: dict) -> bytes:
     expenses = organized.get("expenses", {})
     ws = wb.create_sheet("הוצאות שוטפות")
     row = _write_title(ws, "הוצאות שוטפות חודשיות", 1) + 1
-    _write_table(ws, expenses.get("ongoing_monthly", []), row)
+    row = _write_table(ws, expenses.get("ongoing_monthly", []), row)
+
+    credit_card = organized.get("credit_card_summary")
+    if credit_card:
+        row = _write_title(ws, "פירוט הוצאות כרטיס אשראי לפי קטגוריה", row) + 1
+        row = _write_kv(ws, {"סך הוצאה חודשית בכרטיס": credit_card.get("total_monthly_spend")}, row)
+        _write_table(ws, credit_card.get("by_category", []), row)
 
     # ── הוצאות מחזוריות ומגורים ────────────────────────────────
     ws = wb.create_sheet("הוצאות מחזוריות ומגורים")
@@ -144,6 +153,17 @@ def build_workbook(organized: dict, advice: dict) -> bytes:
     row = _write_title(ws, "המלצה (מהיועץ)", row) + 1
     ws.cell(row=row, column=1, value=advice.get("free_capital_recommendation", "")).alignment = RTL_ALIGN
 
+    # ── קרן הלוואה עתידית לעצמי ────────────────────────────────
+    ws = wb.create_sheet("קרן הלוואה עתידית לעצמי")
+    strategy = advice.get("self_loan_fund_strategy", {}) or {}
+    row = _write_title(ws, "אסטרטגיית קרן ההלוואה העתידית לעצמי", 1) + 1
+    row = _write_kv(ws, {
+        "זרימה חודשית נוכחית לקרן": strategy.get("current_monthly_flow"),
+        "זרימה חודשית מומלצת לקרן": strategy.get("recommended_monthly_flow"),
+    }, row)
+    ws.cell(row=row, column=1, value=strategy.get("rationale", "")).alignment = RTL_ALIGN
+    ws.column_dimensions["A"].width = 100
+
     # ── תובנות והמלצות ─────────────────────────────────────────
     ws = wb.create_sheet("תובנות והמלצות")
     row = _write_title(ws, "סיכום מנהלים", 1) + 1
@@ -151,11 +171,18 @@ def build_workbook(organized: dict, advice: dict) -> bytes:
     ws.row_dimensions[row].height = 400
     row += 2
 
-    row = _write_title(ws, "הזדמנויות חיסכון", row) + 1
-    for item in advice.get("savings_opportunities", []):
-        ws.cell(row=row, column=1, value=f"• {item}").alignment = RTL_ALIGN
+    recommendations = advice.get("recommendations", {}) or {}
+    rec_sections = [
+        ("immediate", "המלצות מיידיות"),
+        ("medium_term", "המלצות לטווח בינוני"),
+        ("strategic", "המלצות אסטרטגיות"),
+    ]
+    for key, title in rec_sections:
+        row = _write_title(ws, title, row) + 1
+        for item in recommendations.get(key, []):
+            ws.cell(row=row, column=1, value=f"• {item}").alignment = RTL_ALIGN
+            row += 1
         row += 1
-    row += 1
 
     row = _write_title(ws, "הגדלת הכנסות מול חלוקת התקציב", row) + 1
     ws.cell(row=row, column=1, value=advice.get("income_vs_allocation_recommendation", "")).alignment = RTL_ALIGN
